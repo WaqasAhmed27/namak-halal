@@ -75,18 +75,17 @@ export function Header() {
             </Button>
 
             {/* Auth UI - Clerk Components */}
-            <SignedOut>
-              <SignInButton mode="modal">
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-                  Sign In
-                </Button>
-              </SignInButton>
-              <SignUpButton mode="modal">
-                <Button variant="default" size="sm">
-                  Sign Up
-                </Button>
-              </SignUpButton>
-            </SignedOut>
+            {/* Debug: Auth buttons always visible */}
+            <SignInButton mode="modal">
+              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                Sign In
+              </Button>
+            </SignInButton>
+            <SignUpButton mode="modal">
+              <Button variant="default" size="sm">
+                Sign Up
+              </Button>
+            </SignUpButton>
             <SignedIn>
               <Button variant="ghost" size="icon" asChild className="text-muted-foreground hover:text-foreground">
                 <Link href="/account">
@@ -142,55 +141,57 @@ export function Header() {
       </div>
 
       {/* Mobile Menu */}
-      {isMenuOpen && (
-        <div className="lg:hidden bg-background/98 backdrop-blur-lg border-b border-border">
-          <nav className="container mx-auto px-3 md:px-4 py-3 md:py-4 flex flex-col gap-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="py-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors uppercase tracking-wide"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {link.label}
-              </Link>
-            ))}
-            <hr className="my-2 border-border" />
+      {
+        isMenuOpen && (
+          <div className="lg:hidden bg-background/98 backdrop-blur-lg border-b border-border">
+            <nav className="container mx-auto px-3 md:px-4 py-3 md:py-4 flex flex-col gap-1">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="py-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors uppercase tracking-wide"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              ))}
+              <hr className="my-2 border-border" />
 
-            {/* Mobile Auth UI */}
-            <SignedOut>
-              <SignInButton mode="modal">
-                <button
+              {/* Mobile Auth UI */}
+              <SignedOut>
+                <SignInButton mode="modal">
+                  <button
+                    className="py-2 text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <User className="h-4 w-4" />
+                    Sign In
+                  </button>
+                </SignInButton>
+              </SignedOut>
+              <SignedIn>
+                <Link
+                  href="/account"
                   className="py-2 text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <User className="h-4 w-4" />
-                  Sign In
-                </button>
-              </SignInButton>
-            </SignedOut>
-            <SignedIn>
+                  Account
+                </Link>
+              </SignedIn>
+
               <Link
-                href="/account"
+                href="/wishlist"
                 className="py-2 text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2"
                 onClick={() => setIsMenuOpen(false)}
               >
-                <User className="h-4 w-4" />
-                Account
+                <Heart className="h-4 w-4" />
+                Wishlist
               </Link>
-            </SignedIn>
-
-            <Link
-              href="/wishlist"
-              className="py-2 text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <Heart className="h-4 w-4" />
-              Wishlist
-            </Link>
-          </nav>
-        </div>
-      )}
-    </header>
+            </nav>
+          </div>
+        )
+      }
+    </header >
   )
 }

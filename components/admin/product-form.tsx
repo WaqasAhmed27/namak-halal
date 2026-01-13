@@ -31,15 +31,15 @@ export function ProductForm({ product }: ProductFormProps) {
     description: product?.description || "",
     short_description: product?.short_description || "",
     price: product?.price || 0,
-    compare_price: product?.compare_price || 0,
+    compare_price: product?.compare_at_price || 0,
     category: product?.category || "natural",
     shape: product?.shape || "natural",
     size: product?.size || "medium",
-    weight: product?.weight || "",
-    dimensions: product?.dimensions || "",
-    stock: product?.stock || 0,
-    in_stock: product?.in_stock ?? true,
-    featured: product?.featured ?? false,
+    weight: product?.weight_kg?.toString() || "",
+    dimensions: "", // product?.dimensions || "", // dimensions not in Product type or DB
+    stock: product?.stock_quantity || 0,
+    in_stock: product?.is_active ?? true,
+    featured: product?.is_featured ?? false,
     images: product?.images?.join("\n") || "",
   })
 
@@ -62,15 +62,15 @@ export function ProductForm({ product }: ProductFormProps) {
         description: formData.description,
         short_description: formData.short_description,
         price: Number(formData.price),
-        compare_price: Number(formData.compare_price) || null,
+        compare_at_price: Number(formData.compare_price) || null,
         category: formData.category,
         shape: formData.shape,
         size: formData.size,
-        weight: formData.weight,
-        dimensions: formData.dimensions,
-        stock: Number(formData.stock),
-        in_stock: formData.in_stock,
-        featured: formData.featured,
+        weight_kg: Number.parseFloat(formData.weight) || null,
+        // dimensions: formData.dimensions, // This column logic might need check, table doesn't have dimensions column in step 363 view
+        stock_quantity: Number(formData.stock),
+        is_active: formData.in_stock,
+        is_featured: formData.featured,
         images: formData.images.split("\n").filter((url) => url.trim()),
       }
 
