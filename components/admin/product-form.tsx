@@ -5,6 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
+import { createProduct, updateProduct } from "@/lib/actions/products"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -75,13 +76,9 @@ export function ProductForm({ product }: ProductFormProps) {
       }
 
       if (product) {
-        const { error } = await supabase.from("products").update(productData).eq("id", product.id)
-
-        if (error) throw error
+        await updateProduct(product.id, productData)
       } else {
-        const { error } = await supabase.from("products").insert(productData)
-
-        if (error) throw error
+        await createProduct(productData)
       }
 
       router.push("/admin/products")
