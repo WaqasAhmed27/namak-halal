@@ -3,20 +3,17 @@ import { NextResponse } from "next/server"
 
 const isAdminRoute = createRouteMatcher(["/admin(.*)"])
 const isAccountRoute = createRouteMatcher(["/account(.*)"])
-const isCheckoutRoute = createRouteMatcher(["/checkout(.*)"])
 
 export default clerkMiddleware(async (auth, req) => {
     const { pathname } = req.nextUrl
 
-    // ✅ HARD BYPASS — webhook must never touch Clerk auth
+    // Safety bypass (should not run due to matcher, but kept anyway)
     if (pathname === "/api/clerk/webhook") {
         return NextResponse.next()
     }
 
-    // ⬇️ ONLY now is it safe to evaluate auth
     const { userId, sessionClaims } = await auth()
 
-    // Admin routes
     if (isAdminRoute(req)) {
         if (!userId) {
             const signInUrl = new URL("/sign-in", req.url)
@@ -30,7 +27,6 @@ export default clerkMiddleware(async (auth, req) => {
         }
     }
 
-    // Account routes
     if (isAccountRoute(req)) {
         if (!userId) {
             const signInUrl = new URL("/sign-in", req.url)
@@ -43,7 +39,7 @@ export default clerkMiddleware(async (auth, req) => {
 })
 
 export const config = {
-  matcher: [
-    "/((?!api/clerk/webhook|_next|favicon.ico).*)",
-  ],
+    matcher: [
+        "/((?!api/clerk/webhook|_next|favicon.ico).*)",
+    ],
 }
