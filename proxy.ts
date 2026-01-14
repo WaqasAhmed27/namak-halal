@@ -1,15 +1,22 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
 
-// Define protected routes
 const isAdminRoute = createRouteMatcher(["/admin(.*)"])
 const isAccountRoute = createRouteMatcher(["/account(.*)"])
 const isCheckoutRoute = createRouteMatcher(["/checkout(.*)"])
 
 export default clerkMiddleware(async (auth, req) => {
+    const { pathname } = req.nextUrl
+
+    // ✅ HARD BYPASS — webhook must never touch Clerk auth
+    if (pathname === "/api/clerk/webhook") {
+        return NextResponse.next()
+    }
+
+    // ⬇️ ONLY now is it safe to evaluate auth
     const { userId, sessionClaims } = await auth()
 
-    // Admin routes: require authentication and admin role
+    // Admin routes
     if (isAdminRoute(req)) {
         if (!userId) {
             const signInUrl = new URL("/sign-in", req.url)
@@ -17,15 +24,13 @@ export default clerkMiddleware(async (auth, req) => {
             return NextResponse.redirect(signInUrl)
         }
 
-        // Check for admin role in publicMetadata
         const role = (sessionClaims?.metadata as { role?: string })?.role
         if (role !== "admin") {
-            // Redirect non-admins to home page
             return NextResponse.redirect(new URL("/", req.url))
         }
     }
 
-    // Account routes: require authentication
+    // Account routes
     if (isAccountRoute(req)) {
         if (!userId) {
             const signInUrl = new URL("/sign-in", req.url)
@@ -34,15 +39,11 @@ export default clerkMiddleware(async (auth, req) => {
         }
     }
 
-    // Checkout routes: allow both guests and authenticated users
-    // No blocking here, checkout page handles guest checkout
-
     return NextResponse.next()
 })
 
 export const config = {
     matcher: [
-        // Skip Next.js internals, static files, and webhook routes
-        "/((?!_next|api/clerk/webhook|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+        "/((?!_next|favicon.ico|.*\\..*).*)",
     ],
 }
