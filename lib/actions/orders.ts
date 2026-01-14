@@ -129,6 +129,25 @@ export async function createOrder(orderData: {
         await supabase.from("cart_items").delete().eq("user_id", userId)
     }
 
+    // Send order notification (best-effort, don't fail order if this fails)
+    try {
+        await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/order-notify`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                id: order.id,
+                order_number: order.order_number,
+                total: order.total,
+                email: orderData.email,
+            }),
+        })
+    } catch (notifyError) {
+        console.warn("Failed to send order notification:", notifyError)
+    }
+
     revalidatePath("/account/orders")
     revalidatePath("/admin/orders")
 
