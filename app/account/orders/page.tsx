@@ -8,7 +8,12 @@ import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { createClient } from "@/lib/supabase/server"
+import { getUserOrders } from "@/lib/actions/orders"
+
+export const metadata = {
+  title: "Order History | Namak Halal",
+  description: "View your order history and track shipments",
+}
 
 function formatPrice(price: number): string {
   return new Intl.NumberFormat("en-PK", {
@@ -21,8 +26,9 @@ function formatPrice(price: number): string {
 
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-  processing: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-  shipped: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+  confirmed: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+  processing: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+  shipped: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20",
   delivered: "bg-green-500/10 text-green-500 border-green-500/20",
   cancelled: "bg-red-500/10 text-red-500 border-red-500/20",
 }
@@ -31,16 +37,16 @@ export default async function OrdersPage() {
   const { userId } = await auth()
 
   if (!userId) {
-    redirect("/sign-in")
+    redirect("/sign-in?redirect_url=/account/orders")
   }
 
-  // Fetch orders from database using Clerk userId
-  const supabase = await createClient()
-  const { data: orders } = await supabase
-    .from("orders")
-    .select("*")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false })
+  let orders: Awaited<ReturnType<typeof getUserOrders>> = []
+
+  try {
+    orders = await getUserOrders()
+  } catch (error) {
+    console.error("Failed to fetch orders:", error)
+  }
 
   return (
     <>
@@ -57,7 +63,7 @@ export default async function OrdersPage() {
 
           <h1 className="text-3xl font-bold text-foreground mb-8">Order History</h1>
 
-          {!orders || orders.length === 0 ? (
+          {orders.length === 0 ? (
             <Card className="bg-card/50 border-border">
               <CardContent className="p-12 text-center">
                 <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
@@ -70,8 +76,8 @@ export default async function OrdersPage() {
             </Card>
           ) : (
             <div className="space-y-4">
-              {orders.map((order: any) => (
-                <Card key={order.id} className="bg-card/50 border-border">
+              {orders.map((order) => (
+                <Card key={order.id} className="bg-card/50 border-border hover:border-primary/30 transition-colors">
                   <CardContent className="p-6">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div>
@@ -89,9 +95,14 @@ export default async function OrdersPage() {
                             day: "numeric",
                           })}
                         </p>
+                        {order.order_items && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {order.order_items.length} item{order.order_items.length !== 1 ? "s" : ""}
+                          </p>
+                        )}
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-foreground">{formatPrice(order.total)}</p>
+                        <p className="font-bold text-foreground text-lg">{formatPrice(order.total)}</p>
                         <Button variant="link" asChild className="p-0 h-auto text-primary">
                           <Link href={`/account/orders/${order.id}`}>View Details</Link>
                         </Button>

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
+import { deleteProduct } from "@/lib/actions/products"
 import { Button } from "@/components/ui/button"
 import {
   AlertDialog,
@@ -16,6 +16,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Trash2, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 
 interface DeleteProductButtonProps {
   productId: string
@@ -23,23 +24,26 @@ interface DeleteProductButtonProps {
 
 export function DeleteProductButton({ productId }: DeleteProductButtonProps) {
   const router = useRouter()
-  const supabase = createClient()
   const [loading, setLoading] = useState(false)
+  const [open, setOpen] = useState(false)
 
   const handleDelete = async () => {
     setLoading(true)
     try {
-      await supabase.from("products").delete().eq("id", productId)
+      await deleteProduct(productId)
+      toast.success("Product deleted successfully")
+      setOpen(false)
       router.refresh()
     } catch (error) {
       console.error("Error deleting product:", error)
+      toast.error("Failed to delete product")
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <AlertDialog>
+    <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
           <Trash2 className="h-4 w-4" />
@@ -53,7 +57,7 @@ export function DeleteProductButton({ productId }: DeleteProductButtonProps) {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleDelete}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

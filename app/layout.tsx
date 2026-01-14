@@ -6,6 +6,7 @@ import { ClerkProvider } from "@clerk/nextjs"
 import { CartProvider } from "@/components/providers/cart-provider"
 import { LampGlowProvider } from "@/components/providers/lamp-glow-provider"
 import { CartDrawer } from "@/components/cart/cart-drawer"
+import { Toaster } from "sonner"
 import "./globals.css"
 
 const geistSans = Geist({
@@ -51,7 +52,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <ClerkProvider>
+    <ClerkProvider dynamic>
       <html lang="en" className="dark">
         <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
           <LampGlowProvider>
@@ -60,10 +61,17 @@ export default function RootLayout({
               <CartDrawer />
             </CartProvider>
           </LampGlowProvider>
+          <Toaster
+            position="bottom-right"
+            richColors
+            theme="dark"
+            toastOptions={{
+              className: "bg-card border-border",
+            }}
+          />
           <Analytics />
         </body>
       </html>
     </ClerkProvider>
   )
 }
-

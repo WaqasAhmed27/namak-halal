@@ -1,14 +1,35 @@
+import { auth } from "@clerk/nextjs/server"
+import { redirect } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { Heart } from "lucide-react"
 import { Starfield } from "@/components/ui/starfield"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { getWishlist } from "@/lib/actions/wishlist"
+import { WishlistItemCard } from "@/components/product/wishlist-item-card"
 
-export default function WishlistPage() {
-  // For now, wishlist is empty - will be populated from database when user is logged in
-  const wishlistItems: any[] = []
+export const metadata = {
+  title: "My Wishlist | Namak Halal",
+  description: "View and manage your saved products",
+}
+
+export default async function WishlistPage() {
+  const { userId } = await auth()
+
+  if (!userId) {
+    redirect("/sign-in?redirect_url=/wishlist")
+  }
+
+  let wishlistItems: Awaited<ReturnType<typeof getWishlist>> = []
+
+  try {
+    wishlistItems = await getWishlist()
+  } catch (error) {
+    console.error("Failed to load wishlist:", error)
+  }
 
   return (
     <>
@@ -31,7 +52,9 @@ export default function WishlistPage() {
             </Card>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* Wishlist items would render here */}
+              {wishlistItems.map((item) => (
+                <WishlistItemCard key={item.id} item={item} />
+              ))}
             </div>
           )}
         </div>

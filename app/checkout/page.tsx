@@ -14,6 +14,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useCart } from "@/components/providers/cart-provider"
+import { createOrder } from "@/lib/actions/orders"
+import { toast } from "sonner"
 
 function formatPrice(price: number): string {
   return new Intl.NumberFormat("en-PK", {
@@ -32,6 +34,7 @@ export default function CheckoutPage() {
   const [currentStep, setCurrentStep] = useState<CheckoutStep>("information")
   const [isProcessing, setIsProcessing] = useState(false)
   const [orderNumber, setOrderNumber] = useState("")
+  const [error, setError] = useState("")
 
   // Form states
   const [email, setEmail] = useState("")
@@ -63,6 +66,12 @@ export default function CheckoutPage() {
 
   const handleContinue = () => {
     if (currentStep === "information") {
+      // Basic validation
+      if (!email || !firstName || !lastName || !address || !city || !postalCode) {
+        setError("Please fill in all required fields")
+        return
+      }
+      setError("")
       setCurrentStep("shipping")
     } else if (currentStep === "shipping") {
       setCurrentStep("payment")
@@ -71,14 +80,44 @@ export default function CheckoutPage() {
 
   const handlePlaceOrder = async () => {
     setIsProcessing(true)
-    // Simulate order processing
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    setError("")
 
-    const newOrderNumber = `NH${Date.now().toString().slice(-8)}`
-    setOrderNumber(newOrderNumber)
-    setCurrentStep("confirmation")
-    clearCart()
-    setIsProcessing(false)
+    try {
+      const orderItems = items.map((item) => ({
+        product_id: item.product_id,
+        product_name: item.product?.name || "Unknown Product",
+        product_price: item.product?.price || 0,
+        quantity: item.quantity,
+      }))
+
+      const result = await createOrder({
+        email,
+        shippingAddress: {
+          full_name: `${firstName} ${lastName}`,
+          street_address: address,
+          city,
+          postal_code: postalCode,
+          country: "Pakistan",
+          phone: phone || undefined,
+        },
+        items: orderItems,
+        subtotal,
+        shippingCost,
+        discountAmount: discount,
+        shippingMethod,
+      })
+
+      setOrderNumber(result.orderNumber)
+      setCurrentStep("confirmation")
+      clearCart()
+      toast.success("Order placed successfully!")
+    } catch (err: any) {
+      console.error("Order creation failed:", err)
+      setError(err.message || "Failed to place order. Please try again.")
+      toast.error("Failed to place order")
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   if (items.length === 0 && currentStep !== "confirmation") {
@@ -171,13 +210,12 @@ export default function CheckoutPage() {
                         const currentIndex = steps.findIndex((s) => s.key === currentStep)
                         if (index < currentIndex) setCurrentStep(step.key)
                       }}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                        step.key === currentStep
+                      className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${step.key === currentStep
                           ? "bg-primary text-primary-foreground"
                           : steps.findIndex((s) => s.key === currentStep) > index
                             ? "bg-primary/20 text-primary cursor-pointer"
                             : "bg-secondary text-muted-foreground"
-                      }`}
+                        }`}
                     >
                       {step.label}
                     </button>
@@ -288,9 +326,8 @@ export default function CheckoutPage() {
                   <CardContent>
                     <RadioGroup value={shippingMethod} onValueChange={setShippingMethod} className="space-y-4">
                       <div
-                        className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-colors ${
-                          shippingMethod === "standard" ? "border-primary bg-primary/5" : "border-border"
-                        }`}
+                        className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-colors ${shippingMethod === "standard" ? "border-primary bg-primary/5" : "border-border"
+                          }`}
                         onClick={() => setShippingMethod("standard")}
                       >
                         <div className="flex items-center gap-3">
@@ -308,9 +345,8 @@ export default function CheckoutPage() {
                       </div>
 
                       <div
-                        className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-colors ${
-                          shippingMethod === "express" ? "border-primary bg-primary/5" : "border-border"
-                        }`}
+                        className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-colors ${shippingMethod === "express" ? "border-primary bg-primary/5" : "border-border"
+                          }`}
                         onClick={() => setShippingMethod("express")}
                       >
                         <div className="flex items-center gap-3">

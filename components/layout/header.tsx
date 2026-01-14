@@ -75,17 +75,18 @@ export function Header() {
             </Button>
 
             {/* Auth UI - Clerk Components */}
-            {/* Debug: Auth buttons always visible */}
-            <SignInButton mode="modal">
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-                Sign In
-              </Button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <Button variant="default" size="sm">
-                Sign Up
-              </Button>
-            </SignUpButton>
+            <SignedOut>
+              <SignInButton mode="modal">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                  Sign In
+                </Button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <Button variant="default" size="sm">
+                  Sign Up
+                </Button>
+              </SignUpButton>
+            </SignedOut>
             <SignedIn>
               <Button variant="ghost" size="icon" asChild className="text-muted-foreground hover:text-foreground">
                 <Link href="/account">

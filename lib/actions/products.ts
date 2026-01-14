@@ -66,3 +66,19 @@ export async function updateProduct(id: string, formData: any) {
     revalidatePath(`/shop/${formData.slug}`)
     return { success: true }
 }
+
+export async function deleteProduct(productId: string) {
+    await checkAdmin()
+    const supabase = createAdminClient()
+
+    const { error } = await supabase.from("products").delete().eq("id", productId)
+
+    if (error) {
+        console.error("Supabase Delete Error:", error)
+        throw new Error(error.message)
+    }
+
+    revalidatePath("/admin/products")
+    revalidatePath("/shop")
+    return { success: true }
+}
