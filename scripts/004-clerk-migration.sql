@@ -188,7 +188,29 @@ CREATE POLICY "Anyone can view reviews"
   ON reviews FOR SELECT USING (true);
 
 -- =====================================================
--- STEP 7: Recreate Triggers
+-- STEP 7: Create/Recreate Functions
+-- =====================================================
+
+-- Function to auto-update updated_at timestamp
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to generate order number
+CREATE OR REPLACE FUNCTION generate_order_number()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.order_number = 'ORD-' || TO_CHAR(NOW(), 'YYYYMMDD') || '-' || LPAD(FLOOR(RANDOM() * 10000)::TEXT, 4, '0');
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- =====================================================
+-- STEP 8: Recreate Triggers
 -- =====================================================
 
 -- Recreate updated_at triggers
@@ -220,7 +242,7 @@ CREATE TRIGGER set_order_number
   EXECUTE FUNCTION generate_order_number();
 
 -- =====================================================
--- STEP 8: Add indexes for performance
+-- STEP 9: Add indexes for performance
 -- =====================================================
 
 CREATE INDEX IF NOT EXISTS idx_profiles_email ON profiles(email);
