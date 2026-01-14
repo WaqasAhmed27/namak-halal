@@ -139,22 +139,22 @@ export default async function AdminProducts() {
                           <td className="px-6 py-4">Rs. {product.price?.toLocaleString()}</td>
                           <td className="px-6 py-4">
                             <span
-                              className={`${product.stock > 10
-                                  ? "text-green-400"
-                                  : product.stock > 0
-                                    ? "text-yellow-400"
-                                    : "text-red-400"
+                              className={`${product.stock_quantity > 10
+                                ? "text-green-400"
+                                : product.stock_quantity > 0
+                                  ? "text-yellow-400"
+                                  : "text-red-400"
                                 }`}
                             >
-                              {product.stock}
+                              {product.stock_quantity}
                             </span>
                           </td>
                           <td className="px-6 py-4">
                             <span
-                              className={`inline-block rounded-full px-2 py-0.5 text-xs ${product.in_stock ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"
+                              className={`inline-block rounded-full px-2 py-0.5 text-xs ${product.is_active ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"
                                 }`}
                             >
-                              {product.in_stock ? "In Stock" : "Out of Stock"}
+                              {product.is_active ? "Active" : "Inactive"}
                             </span>
                           </td>
                           <td className="px-6 py-4">
