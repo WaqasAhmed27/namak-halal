@@ -43,7 +43,7 @@ export default clerkMiddleware(async (auth, req) => {
 })
 
 export const config = {
-    matcher: [
-        "/((?!_next|favicon.ico|.*\\..*).*)",
-    ],
+  matcher: [
+    "/((?!api/clerk/webhook|_next|favicon.ico).*)",
+  ],
 }
