@@ -93,13 +93,17 @@ export async function POST(req: Request) {
         // Update profile (idempotent - update only)
         const { error } = await supabase
           .from("profiles")
-          .update({
-            email: primaryEmail,
-            full_name: fullName,
-            is_admin: isAdmin,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", id)
+          .upsert(
+            {
+              id,
+              email: primaryEmail,
+              full_name: fullName,
+              is_admin: isAdmin,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "id" }
+          )
+
 
         if (error) {
           console.error("Error updating profile:", error)
